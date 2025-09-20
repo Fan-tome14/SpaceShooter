@@ -6,7 +6,7 @@ Ce projet a été réalisé en groupe dans le cadre du **Travail Pratique 1 (TP1
 
 - **Titre du projet :** Space Shooter  
 - **Date de réalisation :** 20 septembre 2025  
-- **Type de projet :** Développement individuel  
+- **Type de projet :** Travail individuel  
 - **Moteur de développement :** Unreal Engine
 
 ---
