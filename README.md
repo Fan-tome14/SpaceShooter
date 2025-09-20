@@ -24,10 +24,11 @@ Le projet a été conçu dans **Unreal Engine**.
 Afin d’obtenir un exécutable **(.exe)**, il est nécessaire d’utiliser la fonction d’empaquetage du moteur :
 
 1. Ouvrir le projet dans Unreal Engine  
-2. Naviguer vers **File → Package Project**  
-3. Sélectionner la plateforme **Windows (64-bit)**  
-4. L’exécutable sera généré dans le répertoire choisi lors de l’empaquetage
-
+2. Naviguer vers **Platforme**  
+3. Sélectionner la plateforme **Windows**
+4. Sélectionner **Livraison et x64**
+5. Cliquer sur Empaqueter le Projet
+6. L’exécutable sera généré dans le répertoire choisi lors de l’empaquetage  
 ---
 
 ## Structure du projet
