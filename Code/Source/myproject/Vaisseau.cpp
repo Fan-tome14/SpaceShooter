@@ -33,17 +33,23 @@ void AVaisseau::Tick(float DeltaTime)
 	FVector DirectionSouris = ObtenirDirectionVersSouris();
 	if (!DirectionSouris.IsZero())
 	{
-		// Rotation seulement du mesh (le Pawn reste orienté "par défaut")
+		// Rotation seulement du mesh
 		MeshVaisseau->SetRelativeRotation(DirectionSouris.Rotation());
 
-		// Calcul déplacement (sur l’Actor lui-même)
+		// Calcul déplacement
 		FVector Deplacement = DirectionSouris.GetSafeNormal() * InputActuel.X; // avant/arrière
 		FVector Tangente = FVector::CrossProduct(FVector::UpVector, DirectionSouris).GetSafeNormal();
 		Deplacement += Tangente * InputActuel.Y; // gauche/droite
 
-		// Appliquer mouvement sur le Pawn (RootComponent bouge → collisions ok)
+		// Position proposée
 		FVector NouvellePosition = GetActorLocation() + Deplacement * Vitesse * DeltaTime;
 		NouvellePosition.Z = GetActorLocation().Z; // reste sur le sol
+
+		// 🔒 Clamp dans la zone [-3800, 3800]
+		NouvellePosition.X = FMath::Clamp(NouvellePosition.X, -3800.0f, 3800.0f);
+		NouvellePosition.Y = FMath::Clamp(NouvellePosition.Y, -3800.0f, 3800.0f);
+
+		// Appliquer la nouvelle position
 		SetActorLocation(NouvellePosition);
 	}
 }
