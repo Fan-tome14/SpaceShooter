@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -10,17 +8,30 @@ UCLASS()
 class MYPROJECT_API AMissile : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
+
+public:
 	AMissile();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
+public:
 	virtual void Tick(float DeltaTime) override;
 
+	// Direction du missile
+	void InitDirection(const FVector& NewDirection);
+
+private:
+	UPROPERTY(VisibleAnywhere)
+	class UStaticMeshComponent* MeshMissile;
+
+	// Vitesse du missile
+	UPROPERTY(EditAnywhere, Category = "Missile")
+	float Vitesse = 2000.0f;
+
+	// Direction de déplacement
+	FVector Direction;
+
+	// Référence au vaisseau pour calculer la zone
+	APawn* ReferenceVaisseau = nullptr;
 };

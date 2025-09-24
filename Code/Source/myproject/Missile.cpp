@@ -1,27 +1,62 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Missile.h"
+#include "Components/StaticMeshComponent.h"
+#include "GameFramework/Pawn.h"
+#include "Kismet/GameplayStatics.h"
 
-// Sets default values
+// Constructeur
 AMissile::AMissile()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	MeshMissile = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshMissile"));
+	RootComponent = MeshMissile;
 }
 
-// Called when the game starts or when spawned
 void AMissile::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	// Sauvegarde la référence du vaisseau
+	if (GetWorld() && GetWorld()->GetFirstPlayerController())
+	{
+		ReferenceVaisseau = GetWorld()->GetFirstPlayerController()->GetPawn();
+	}
 }
 
-// Called every frame
 void AMissile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Déplacement du missile
+	if (!Direction.IsZero())
+	{
+		FVector NewLocation = GetActorLocation() + Direction * Vitesse * DeltaTime;
+		SetActorLocation(NewLocation);
+	}
+
+	// Vérifie si hors zone
+	if (ReferenceVaisseau)
+	{
+		FVector VaisseauPos = ReferenceVaisseau->GetActorLocation();
+		FVector Pos = GetActorLocation();
+
+		// Offsets identiques à l’astéroïde
+		float OffsetXTop = 1130.0f;
+		float OffsetXBottom = -1130.0f;
+		float OffsetYLeft = -2460.0f;
+		float OffsetYRight = 2460.0f;
+
+		if (Pos.X < VaisseauPos.X + OffsetXBottom ||
+			Pos.X > VaisseauPos.X + OffsetXTop ||
+			Pos.Y < VaisseauPos.Y + OffsetYLeft ||
+			Pos.Y > VaisseauPos.Y + OffsetYRight)
+		{
+			Destroy(); // Supprime le missile hors zone
+		}
+	}
 }
 
+void AMissile::InitDirection(const FVector& NewDirection)
+{
+	Direction = NewDirection.GetSafeNormal();
+}

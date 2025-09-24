@@ -4,6 +4,8 @@
 #include "Engine/World.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Missile.h"
+
 
 // Constructeur
 AVaisseau::AVaisseau()
@@ -53,7 +55,35 @@ void AVaisseau::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	PlayerInputComponent->BindAxis("Avancer", this, &AVaisseau::DeplacerAvantArriere);
 	PlayerInputComponent->BindAxis("Droite", this, &AVaisseau::DeplacerGaucheDroite);
+
+	// Tir avec ESPACE
+	PlayerInputComponent->BindAxis("Tirer", this, &AVaisseau::Tirer);
 }
+
+void AVaisseau::Tirer(float Valeur)
+{
+	if (Valeur > 0.5f && MissileClass)
+	{
+		float TempsActuel = GetWorld()->GetTimeSeconds();
+		if (TempsActuel - DernierTir > 0.3f) // cooldown 0.3s
+		{
+			DernierTir = TempsActuel;
+
+			UWorld* World = GetWorld();
+			FVector SpawnLocation = GetActorLocation() + MeshVaisseau->GetForwardVector() * 100.0f;
+			FRotator SpawnRotation = MeshVaisseau->GetComponentRotation();
+
+			AMissile* Missile = World->SpawnActor<AMissile>(MissileClass, SpawnLocation, SpawnRotation);
+			if (Missile)
+			{
+				Missile->InitDirection(MeshVaisseau->GetForwardVector());
+			}
+		}
+	}
+}
+
+
+
 
 void AVaisseau::DeplacerAvantArriere(float Valeur)
 {

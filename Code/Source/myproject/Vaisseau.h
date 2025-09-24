@@ -5,6 +5,10 @@
 #include "GameFramework/Pawn.h"
 #include "Vaisseau.generated.h"
 
+// Déclaration anticipée (forward declaration)
+class AMissile;
+
+
 UCLASS()
 class MYPROJECT_API AVaisseau : public APawn
 {
@@ -36,6 +40,14 @@ private:
 	void DeplacerGaucheDroite(float Valeur);
 
 	FVector ObtenirDirectionVersSouris();
+
+	UPROPERTY(EditAnywhere, Category = "Tir")
+	TSubclassOf<class AMissile> MissileClass;
+
+	void Tirer(float Valeur);
+
+	float DernierTir = 0.0f;
+
 
 	// Vies du joueur
 	UPROPERTY(EditAnywhere, Category = "Vie")
