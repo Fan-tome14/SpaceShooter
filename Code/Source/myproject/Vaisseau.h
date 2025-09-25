@@ -1,55 +1,49 @@
-// Vaisseau.h
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Vaisseau.generated.h"
 
-// Déclaration anticipée (forward declaration)
 class AMissile;
-
 
 UCLASS()
 class MYPROJECT_API AVaisseau : public APawn
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	AVaisseau();
+    AVaisseau();
 
 protected:
-	virtual void BeginPlay() override;
+    virtual void BeginPlay() override;
 
 public:
-	virtual void Tick(float DeltaTime) override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+    virtual void Tick(float DeltaTime) override;
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	// Gestion des vies
-	void PerdreVie();
+    void PerdreVie();
 
-private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Composants", meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* MeshVaisseau;
+protected: // <-- important pour BlueprintReadWrite
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Composants")
+    class UStaticMeshComponent* MeshVaisseau;
 
-	UPROPERTY(EditAnywhere, Category = "Mouvement")
-	float Vitesse = 500.0f;
+    UPROPERTY(EditAnywhere, Category = "Mouvement")
+    float Vitesse = 500.0f;
 
-	FVector InputActuel;
+    FVector InputActuel;
 
-	void DeplacerAvantArriere(float Valeur);
-	void DeplacerGaucheDroite(float Valeur);
+    void DeplacerAvantArriere(float Valeur);
+    void DeplacerGaucheDroite(float Valeur);
 
-	FVector ObtenirDirectionVersSouris();
+    FVector ObtenirDirectionVersSouris();
 
-	UPROPERTY(EditAnywhere, Category = "Tir")
-	TSubclassOf<class AMissile> MissileClass;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tir")
+    TSubclassOf<class AMissile> MissileClass;
 
-	void Tirer(float Valeur);
+    void Tirer(float Valeur);
 
-	float DernierTir = 0.0f;
+    float DernierTir = 0.0f;
 
-
-	// Vies du joueur
-	UPROPERTY(EditAnywhere, Category = "Vie")
-	int Vie = 3;
+    UPROPERTY(EditAnywhere, Category = "Vie")
+    int Vie = 3;
 };

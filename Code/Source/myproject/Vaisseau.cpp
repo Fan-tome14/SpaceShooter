@@ -1,23 +1,22 @@
-﻿// Vaisseau.cpp
-#include "Vaisseau.h"
+﻿#include "Vaisseau.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Missile.h"
 
-
 // Constructeur
 AVaisseau::AVaisseau()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Root
 	USceneComponent* SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent = SceneRoot;
 
+	// Mesh
 	MeshVaisseau = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshVaisseau"));
 	MeshVaisseau->SetupAttachment(RootComponent);
-
 	MeshVaisseau->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 }
 
@@ -70,20 +69,26 @@ void AVaisseau::Tirer(float Valeur)
 			DernierTir = TempsActuel;
 
 			UWorld* World = GetWorld();
-			FVector SpawnLocation = GetActorLocation() + MeshVaisseau->GetForwardVector() * 100.0f;
+			if (!World) return;
+
+			// Spawn devant le vaisseau
+			FVector SpawnLocation = MeshVaisseau->GetComponentLocation() + MeshVaisseau->GetForwardVector() * 150.0f;
 			FRotator SpawnRotation = MeshVaisseau->GetComponentRotation();
 
-			AMissile* Missile = World->SpawnActor<AMissile>(MissileClass, SpawnLocation, SpawnRotation);
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			SpawnParams.Instigator = GetInstigator();
+
+			// Spawne le missile
+			AMissile* Missile = World->SpawnActor<AMissile>(MissileClass, SpawnLocation, SpawnRotation, SpawnParams);
 			if (Missile)
 			{
+				// Donne la direction du missile
 				Missile->InitDirection(MeshVaisseau->GetForwardVector());
 			}
 		}
 	}
 }
-
-
-
 
 void AVaisseau::DeplacerAvantArriere(float Valeur)
 {

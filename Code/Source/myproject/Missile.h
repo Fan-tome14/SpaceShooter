@@ -4,6 +4,8 @@
 #include "GameFramework/Actor.h"
 #include "Missile.generated.h"
 
+class UCapsuleComponent;
+
 UCLASS()
 class MYPROJECT_API AMissile : public AActor
 {
@@ -18,20 +20,24 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	// Direction du missile
 	void InitDirection(const FVector& NewDirection);
 
 private:
 	UPROPERTY(VisibleAnywhere)
-	class UStaticMeshComponent* MeshMissile;
+	UCapsuleComponent* CapsuleCollision;
 
-	// Vitesse du missile
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* MeshMissile;
+
 	UPROPERTY(EditAnywhere, Category = "Missile")
 	float Vitesse = 2000.0f;
 
-	// Direction de déplacement
 	FVector Direction;
 
-	// Référence au vaisseau pour calculer la zone
 	APawn* ReferenceVaisseau = nullptr;
+
+	UFUNCTION()
+	void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+		bool bFromSweep, const FHitResult& SweepResult);
 };
