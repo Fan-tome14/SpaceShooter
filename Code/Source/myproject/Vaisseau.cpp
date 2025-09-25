@@ -129,6 +129,7 @@ void AVaisseau::PerdreVie()
 {
 	Vie--;
 	UE_LOG(LogTemp, Warning, TEXT("Vie perdue ! Vie restante: %d"), Vie);
+
 }
 
 // ✅ Fonction appelée quand la box overlap un astéroïde

@@ -60,4 +60,6 @@ protected:
     // Vies du vaisseau
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vie")
     int Vie;
+
+
 };
