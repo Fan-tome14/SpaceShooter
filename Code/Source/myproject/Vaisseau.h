@@ -1,11 +1,9 @@
-// Vaisseau.h
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Vaisseau.generated.h"
 
-class UCapsuleComponent;
 class UStaticMeshComponent;
 class AMissile;
 
@@ -27,15 +25,7 @@ public:
     void PerdreVie();
 
 protected:
-    // Root fixe
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Composants")
-    USceneComponent* Root;
-
-    // Capsule de collision (modifiable dans Blueprint)
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Composants")
-    UCapsuleComponent* CapsuleCollision;
-
-    // Mesh du vaisseau (modifiable dans Blueprint)
+    // Mesh du vaisseau (Root et collision)
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Composants")
     UStaticMeshComponent* MeshVaisseau;
 
@@ -54,6 +44,14 @@ protected:
     // Classe de missile
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tir")
     TSubclassOf<AMissile> MissileClass;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision", meta = (AllowPrivateAccess = "true"))
+    class UBoxComponent* CollisionBox;
+
+    UFUNCTION()
+    void OnOverlapAsteroide(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 
     void Tirer(float Valeur);
 

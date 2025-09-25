@@ -1,29 +1,31 @@
 ﻿#include "Vaisseau.h"
 #include "Components/StaticMeshComponent.h"
-#include "Components/CapsuleComponent.h"
+#include "Components/BoxComponent.h" // ✅ pour la box
+#include "Components/SceneComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Missile.h"
+#include "Asteroide.h" // ✅ ton asteroide
 #include "GameFramework/PlayerController.h"
 
 AVaisseau::AVaisseau()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Root fixe
-	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	// ✅ RootComponent générique
+	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent = Root;
-	RootComponent->SetMobility(EComponentMobility::Movable);
 
-	// Capsule de collision
-	CapsuleCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleCollision"));
-	CapsuleCollision->SetupAttachment(RootComponent);
-	CapsuleCollision->InitCapsuleSize(50.f, 100.f);
-	CapsuleCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	// ✅ Box collision attachée au root
+	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
+	CollisionBox->SetupAttachment(RootComponent);
+	CollisionBox->SetBoxExtent(FVector(150.f, 150.f, 150.f)); // Taille de la box
+	CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollisionBox->SetCollisionResponseToAllChannels(ECR_Overlap);
 
-	// Mesh du vaisseau
+	// ✅ Mesh attaché à la box
 	MeshVaisseau = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshVaisseau"));
-	MeshVaisseau->SetupAttachment(CapsuleCollision);
-	MeshVaisseau->SetRelativeLocation(FVector::ZeroVector);
+	MeshVaisseau->SetupAttachment(CollisionBox);
+	MeshVaisseau->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 	// Initialisation
 	Vie = 3;
@@ -35,6 +37,9 @@ AVaisseau::AVaisseau()
 void AVaisseau::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// ✅ Bind la fonction de collision
+	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AVaisseau::OnOverlapAsteroide);
 }
 
 void AVaisseau::Tick(float DeltaTime)
@@ -46,8 +51,10 @@ void AVaisseau::Tick(float DeltaTime)
 	FVector DirectionSouris = ObtenirDirectionVersSouris();
 	if (!DirectionSouris.IsZero())
 	{
-		MeshVaisseau->SetRelativeRotation(DirectionSouris.Rotation());
+		// Rotation du mesh vers la souris
+		MeshVaisseau->SetWorldRotation(DirectionSouris.Rotation());
 
+		// Déplacement
 		FVector Deplacement = DirectionSouris.GetSafeNormal() * InputActuel.X;
 		FVector Tangente = FVector::CrossProduct(FVector::UpVector, DirectionSouris).GetSafeNormal();
 		Deplacement += Tangente * InputActuel.Y;
@@ -125,5 +132,17 @@ void AVaisseau::PerdreVie()
 	if (Vie <= 0)
 	{
 		UGameplayStatics::OpenLevel(this, "GameOver");
+	}
+}
+
+// ✅ Fonction appelée quand la box overlap un astéroïde
+void AVaisseau::OnOverlapAsteroide(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	AAsteroide* Asteroide = Cast<AAsteroide>(OtherActor);
+	if (Asteroide)
+	{
+		Asteroide->Destroy();   // détruire l’astéroïde
+		PerdreVie();            // perdre une vie
 	}
 }
