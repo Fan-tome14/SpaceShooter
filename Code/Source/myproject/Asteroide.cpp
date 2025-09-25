@@ -1,6 +1,7 @@
 #include "Asteroide.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/StaticMeshComponent.h"
+#include "SpaceShooterGameMode.h"
 
 AAsteroide::AAsteroide()
 {
@@ -23,6 +24,7 @@ void AAsteroide::BeginPlay()
 	Super::BeginPlay();
 
 	Vies = FMath::RandRange(1, 3);
+	InialLife = Vies;
 
 	if (CibleClass)
 	{
@@ -58,6 +60,12 @@ void AAsteroide::Tick(float DeltaTime)
 void AAsteroide::RecevoirDegat()
 {
 	Vies--;
+	if (ASpaceshooterGameMode* GM = Cast<ASpaceshooterGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+	{
+		GM->addScore();
+	}
 	if (Vies <= 0)
+	{
 		Destroy();
+	}
 }

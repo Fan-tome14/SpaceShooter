@@ -34,4 +34,5 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Asteroide")
 	int Vies = 1;
+	int InialLife;
 };
