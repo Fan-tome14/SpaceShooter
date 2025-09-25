@@ -8,7 +8,6 @@ AMissile::AMissile()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Capsule pour la collision
 	CapsuleCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleCollision"));
 	CapsuleCollision->InitCapsuleSize(15.f, 50.f);
 	RootComponent = CapsuleCollision;
@@ -16,18 +15,12 @@ AMissile::AMissile()
 	CapsuleCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	CapsuleCollision->SetCollisionObjectType(ECC_WorldDynamic);
 	CapsuleCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
-	CapsuleCollision->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap); // Asteroide
-	CapsuleCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore); // ignore vaisseau
+	CapsuleCollision->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap);
 
-	// Mesh visuel attaché à la capsule
 	MeshMissile = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshMissile"));
 	MeshMissile->SetupAttachment(CapsuleCollision);
-	MeshMissile->SetRelativeLocation(FVector::ZeroVector);
-
-	// Collision du mesh désactivée pour ne pas interférer
 	MeshMissile->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	// Lier la collision
 	CapsuleCollision->OnComponentBeginOverlap.AddDynamic(this, &AMissile::OnOverlap);
 }
 
@@ -36,9 +29,7 @@ void AMissile::BeginPlay()
 	Super::BeginPlay();
 
 	if (GetWorld() && GetWorld()->GetFirstPlayerController())
-	{
 		ReferenceVaisseau = GetWorld()->GetFirstPlayerController()->GetPawn();
-	}
 }
 
 void AMissile::Tick(float DeltaTime)
@@ -51,21 +42,13 @@ void AMissile::Tick(float DeltaTime)
 		SetActorLocation(NewLocation);
 	}
 
-	// Supprimer si hors zone
 	if (ReferenceVaisseau)
 	{
 		FVector VaisseauPos = ReferenceVaisseau->GetActorLocation();
 		FVector Pos = GetActorLocation();
 
-		float OffsetXTop = 1130.0f;
-		float OffsetXBottom = -1130.0f;
-		float OffsetYLeft = -2460.0f;
-		float OffsetYRight = 2460.0f;
-
-		if (Pos.X < VaisseauPos.X + OffsetXBottom ||
-			Pos.X > VaisseauPos.X + OffsetXTop ||
-			Pos.Y < VaisseauPos.Y + OffsetYLeft ||
-			Pos.Y > VaisseauPos.Y + OffsetYRight)
+		if (Pos.X < VaisseauPos.X - 1130.f || Pos.X > VaisseauPos.X + 1130.f ||
+			Pos.Y < VaisseauPos.Y - 2460.f || Pos.Y > VaisseauPos.Y + 2460.f)
 		{
 			Destroy();
 		}
@@ -84,7 +67,7 @@ void AMissile::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor
 	AAsteroide* Asteroide = Cast<AAsteroide>(OtherActor);
 	if (Asteroide)
 	{
-		Asteroide->PrendreDegat();
+		Asteroide->RecevoirDegat();
 		Destroy();
 	}
 }

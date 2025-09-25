@@ -1,9 +1,12 @@
+// Vaisseau.h
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Vaisseau.generated.h"
 
+class UCapsuleComponent;
+class UStaticMeshComponent;
 class AMissile;
 
 UCLASS()
@@ -23,27 +26,40 @@ public:
 
     void PerdreVie();
 
-protected: // <-- important pour BlueprintReadWrite
+protected:
+    // Root fixe
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Composants")
-    class UStaticMeshComponent* MeshVaisseau;
+    USceneComponent* Root;
 
-    UPROPERTY(EditAnywhere, Category = "Mouvement")
-    float Vitesse = 500.0f;
+    // Capsule de collision (modifiable dans Blueprint)
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Composants")
+    UCapsuleComponent* CapsuleCollision;
 
-    FVector InputActuel;
+    // Mesh du vaisseau (modifiable dans Blueprint)
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Composants")
+    UStaticMeshComponent* MeshVaisseau;
+
+    // Vitesse de déplacement
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mouvement")
+    float Vitesse;
+
+    // Entrées actuelles pour X/Y
+    FVector2D InputActuel;
 
     void DeplacerAvantArriere(float Valeur);
     void DeplacerGaucheDroite(float Valeur);
 
     FVector ObtenirDirectionVersSouris();
 
+    // Classe de missile
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tir")
-    TSubclassOf<class AMissile> MissileClass;
+    TSubclassOf<AMissile> MissileClass;
 
     void Tirer(float Valeur);
 
-    float DernierTir = 0.0f;
+    float DernierTir;
 
-    UPROPERTY(EditAnywhere, Category = "Vie")
-    int Vie = 3;
+    // Vies du vaisseau
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vie")
+    int Vie;
 };

@@ -18,8 +18,7 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	// Fonction appelée quand un missile touche l'astéroïde
-	void PrendreDegat();
+	void RecevoirDegat();
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Mouvement")
@@ -33,7 +32,6 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* Mesh;
 
-	// --- Gestion des vies ---
 	UPROPERTY(EditAnywhere, Category = "Asteroide")
-	int Vies = 1; // Valeur par défaut
+	int Vies = 1;
 };

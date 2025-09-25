@@ -1,23 +1,35 @@
 ﻿#include "Vaisseau.h"
-#include "GameFramework/PlayerController.h"
-#include "Engine/World.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Missile.h"
+#include "GameFramework/PlayerController.h"
 
-// Constructeur
 AVaisseau::AVaisseau()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Root
-	USceneComponent* SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	RootComponent = SceneRoot;
+	// Root fixe
+	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	RootComponent = Root;
+	RootComponent->SetMobility(EComponentMobility::Movable);
 
-	// Mesh
+	// Capsule de collision
+	CapsuleCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleCollision"));
+	CapsuleCollision->SetupAttachment(RootComponent);
+	CapsuleCollision->InitCapsuleSize(50.f, 100.f);
+	CapsuleCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	// Mesh du vaisseau
 	MeshVaisseau = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshVaisseau"));
-	MeshVaisseau->SetupAttachment(RootComponent);
-	MeshVaisseau->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+	MeshVaisseau->SetupAttachment(CapsuleCollision);
+	MeshVaisseau->SetRelativeLocation(FVector::ZeroVector);
+
+	// Initialisation
+	Vie = 3;
+	Vitesse = 500.0f;
+	DernierTir = -1.0f;
+	InputActuel = FVector2D::ZeroVector;
 }
 
 void AVaisseau::BeginPlay()
@@ -28,6 +40,8 @@ void AVaisseau::BeginPlay()
 void AVaisseau::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	UE_LOG(LogTemp, Warning, TEXT("Vie actuelle: %d"), Vie);
 
 	FVector DirectionSouris = ObtenirDirectionVersSouris();
 	if (!DirectionSouris.IsZero())
@@ -41,9 +55,6 @@ void AVaisseau::Tick(float DeltaTime)
 		FVector NouvellePosition = GetActorLocation() + Deplacement * Vitesse * DeltaTime;
 		NouvellePosition.Z = GetActorLocation().Z;
 
-		NouvellePosition.X = FMath::Clamp(NouvellePosition.X, -3800.0f, 3800.0f);
-		NouvellePosition.Y = FMath::Clamp(NouvellePosition.Y, -3800.0f, 3800.0f);
-
 		SetActorLocation(NouvellePosition);
 	}
 }
@@ -51,53 +62,19 @@ void AVaisseau::Tick(float DeltaTime)
 void AVaisseau::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 	PlayerInputComponent->BindAxis("Avancer", this, &AVaisseau::DeplacerAvantArriere);
 	PlayerInputComponent->BindAxis("Droite", this, &AVaisseau::DeplacerGaucheDroite);
-
-	// Tir avec ESPACE
 	PlayerInputComponent->BindAxis("Tirer", this, &AVaisseau::Tirer);
-}
-
-void AVaisseau::Tirer(float Valeur)
-{
-	if (Valeur > 0.5f && MissileClass)
-	{
-		float TempsActuel = GetWorld()->GetTimeSeconds();
-		if (TempsActuel - DernierTir > 0.3f) // cooldown 0.3s
-		{
-			DernierTir = TempsActuel;
-
-			UWorld* World = GetWorld();
-			if (!World) return;
-
-			// Spawn devant le vaisseau
-			FVector SpawnLocation = MeshVaisseau->GetComponentLocation() + MeshVaisseau->GetForwardVector() * 150.0f;
-			FRotator SpawnRotation = MeshVaisseau->GetComponentRotation();
-
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.Owner = this;
-			SpawnParams.Instigator = GetInstigator();
-
-			// Spawne le missile
-			AMissile* Missile = World->SpawnActor<AMissile>(MissileClass, SpawnLocation, SpawnRotation, SpawnParams);
-			if (Missile)
-			{
-				// Donne la direction du missile
-				Missile->InitDirection(MeshVaisseau->GetForwardVector());
-			}
-		}
-	}
 }
 
 void AVaisseau::DeplacerAvantArriere(float Valeur)
 {
-	InputActuel.X = FMath::Clamp(Valeur, -1.0f, 1.0f);
+	InputActuel.X = FMath::Clamp(Valeur, -1.f, 1.f);
 }
 
 void AVaisseau::DeplacerGaucheDroite(float Valeur)
 {
-	InputActuel.Y = FMath::Clamp(Valeur, -1.0f, 1.0f);
+	InputActuel.Y = FMath::Clamp(Valeur, -1.f, 1.f);
 }
 
 FVector AVaisseau::ObtenirDirectionVersSouris()
@@ -116,21 +93,37 @@ FVector AVaisseau::ObtenirDirectionVersSouris()
 		Direction.Z = 0;
 		return Direction;
 	}
-
 	return FVector::ZeroVector;
 }
 
-// 🔻 Gestion des vies
+void AVaisseau::Tirer(float Valeur)
+{
+	if (Valeur > 0.5f && MissileClass)
+	{
+		float TempsActuel = GetWorld()->GetTimeSeconds();
+		if (TempsActuel - DernierTir > 0.3f)
+		{
+			DernierTir = TempsActuel;
+
+			FVector SpawnLocation = MeshVaisseau->GetComponentLocation() + MeshVaisseau->GetForwardVector() * 150.f;
+			FRotator SpawnRotation = MeshVaisseau->GetComponentRotation();
+
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			SpawnParams.Instigator = GetInstigator();
+
+			AMissile* Missile = GetWorld()->SpawnActor<AMissile>(MissileClass, SpawnLocation, SpawnRotation, SpawnParams);
+			if (Missile) Missile->InitDirection(MeshVaisseau->GetForwardVector());
+		}
+	}
+}
+
 void AVaisseau::PerdreVie()
 {
 	Vie--;
-	UE_LOG(LogTemp, Warning, TEXT("Vie restante: %d"), Vie);
-
-	// TODO : mettre à jour le HUD (cacher un cœur)
-
+	UE_LOG(LogTemp, Warning, TEXT("Vie perdue ! Vie restante: %d"), Vie);
 	if (Vie <= 0)
 	{
-		// Changer de scène
 		UGameplayStatics::OpenLevel(this, "GameOver");
 	}
 }

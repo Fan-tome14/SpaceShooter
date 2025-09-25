@@ -1,6 +1,5 @@
 #include "Asteroide.h"
 #include "Kismet/GameplayStatics.h"
-#include "GameFramework/Pawn.h"
 #include "Components/StaticMeshComponent.h"
 
 AAsteroide::AAsteroide()
@@ -12,12 +11,11 @@ AAsteroide::AAsteroide()
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshAsteroide"));
 	Mesh->SetupAttachment(RootComponent);
 
-	// --- Collision setup ---
-	Mesh->SetCollisionObjectType(ECC_GameTraceChannel1); // Canal "Asteroide"
+	Mesh->SetCollisionObjectType(ECC_GameTraceChannel1);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	Mesh->SetCollisionResponseToAllChannels(ECR_Ignore);
-	Mesh->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block); // bloque décor si besoin
-	Mesh->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap); // détecte les missiles
+	Mesh->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
+	Mesh->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap);
 }
 
 void AAsteroide::BeginPlay()
@@ -30,17 +28,12 @@ void AAsteroide::BeginPlay()
 	{
 		TArray<AActor*> FoundPawns;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), CibleClass, FoundPawns);
-
 		if (FoundPawns.Num() > 0)
-		{
 			CiblePawn = Cast<APawn>(FoundPawns[0]);
-		}
 	}
 
 	if (!CiblePawn)
-	{
 		CiblePawn = GetWorld()->GetFirstPlayerController()->GetPawn();
-	}
 }
 
 void AAsteroide::Tick(float DeltaTime)
@@ -54,29 +47,17 @@ void AAsteroide::Tick(float DeltaTime)
 	SetActorLocation(NewLocation);
 
 	FVector VaisseauPos = CiblePawn->GetActorLocation();
-
-	float OffsetXTop = 1130.0f;
-	float OffsetXBottom = -1130.0f;
-	float OffsetYLeft = -2460.0f;
-	float OffsetYRight = 2460.0f;
-
 	FVector Pos = GetActorLocation();
-
-	if (Pos.X < VaisseauPos.X + OffsetXBottom ||
-		Pos.X > VaisseauPos.X + OffsetXTop ||
-		Pos.Y < VaisseauPos.Y + OffsetYLeft ||
-		Pos.Y > VaisseauPos.Y + OffsetYRight)
+	if (Pos.X < VaisseauPos.X - 1130.f || Pos.X > VaisseauPos.X + 1130.f ||
+		Pos.Y < VaisseauPos.Y - 2460.f || Pos.Y > VaisseauPos.Y + 2460.f)
 	{
 		Destroy();
 	}
 }
 
-void AAsteroide::PrendreDegat()
+void AAsteroide::RecevoirDegat()
 {
 	Vies--;
-
 	if (Vies <= 0)
-	{
 		Destroy();
-	}
 }
