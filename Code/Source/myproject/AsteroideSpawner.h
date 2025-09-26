@@ -20,7 +20,7 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Spawn")
-	float IntervalleSpawn = 2.0f;
+	float IntervalleSpawn = 1.0f;
 
 	float TempsEcoule = 0.0f;
 

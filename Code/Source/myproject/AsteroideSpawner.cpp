@@ -12,6 +12,8 @@ AAsteroideSpawner::AAsteroideSpawner()
 void AAsteroideSpawner::BeginPlay()
 {
 	Super::BeginPlay();
+
+	IntervalleSpawn = FMath::FRandRange(0.f, 3.f);
 }
 
 void AAsteroideSpawner::Tick(float DeltaTime)
@@ -74,5 +76,7 @@ void AAsteroideSpawner::Tick(float DeltaTime)
 		}
 
 		GetWorld()->SpawnActor<AAsteroide>(ClasseAsteroide, Position, FRotator::ZeroRotator);
+
+		IntervalleSpawn = FMath::FRandRange(0.f, 3.f);
 	}
 }
