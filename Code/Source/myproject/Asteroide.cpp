@@ -2,6 +2,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/StaticMeshComponent.h"
 #include "SpaceShooterGameMode.h"
+#include "Particles/ParticleSystemComponent.h"
+
 
 AAsteroide::AAsteroide()
 {
@@ -59,13 +61,54 @@ void AAsteroide::Tick(float DeltaTime)
 
 void AAsteroide::RecevoirDegat()
 {
-	Vies--;
-	if (ASpaceshooterGameMode* GM = Cast<ASpaceshooterGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
-	{
-		GM->addScore();
-	}
-	if (Vies <= 0)
-	{
-		Destroy();
-	}
+    Vies--;
+
+    if (ASpaceshooterGameMode* GM = Cast<ASpaceshooterGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+    {
+        GM->addScore();
+    }
+
+    if (Vies <= 0)
+    {
+        //  Cacher le mesh immédiatement
+        if (Mesh)
+        {
+            Mesh->SetVisibility(false);
+            Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        }
+
+        //  Spawn de l’effet d’explosion attaché à l’acteur
+        if (ExplosionEffect)
+        {
+            UGameplayStatics::SpawnEmitterAttached(
+                ExplosionEffect,
+                RootComponent,
+                NAME_None,
+                FVector::ZeroVector,
+                FRotator::ZeroRotator,
+                EAttachLocation::KeepRelativeOffset,
+                true // AutoDestroy
+            );
+        }
+
+        //  Arrêter le mouvement en désactivant le tick
+        SetActorTickEnabled(false);
+
+        //  Détruire l’astéroïde (et l’effet attaché) après 2 secondes
+        FTimerHandle TimerHandle;
+        GetWorldTimerManager().SetTimer(
+            TimerHandle,
+            this,
+            &AAsteroide::DestroyAsteroide,
+            1.0f,
+            false
+        );
+    }
+}
+
+
+
+void AAsteroide::DestroyAsteroide()
+{
+    Destroy();
 }

@@ -35,4 +35,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Asteroide")
 	int Vies = 1;
 	int InialLife;
+
+	UPROPERTY(EditAnywhere, Category = "Effets")
+	UParticleSystem* ExplosionEffect;
+
+	void DestroyAsteroide();
 };
