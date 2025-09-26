@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Particles/ParticleSystem.h"
+#include "Kismet/GameplayStatics.h"
 #include "Missile.generated.h"
 
 class UCapsuleComponent;
@@ -9,35 +11,39 @@ class UCapsuleComponent;
 UCLASS()
 class MYPROJECT_API AMissile : public AActor
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	AMissile();
+    AMissile();
 
 protected:
-	virtual void BeginPlay() override;
+    virtual void BeginPlay() override;
 
 public:
-	virtual void Tick(float DeltaTime) override;
+    virtual void Tick(float DeltaTime) override;
 
-	void InitDirection(const FVector& NewDirection);
+    void InitDirection(const FVector& NewDirection);
 
 private:
-	UPROPERTY(VisibleAnywhere)
-	UCapsuleComponent* CapsuleCollision;
+    UPROPERTY(VisibleAnywhere)
+    UCapsuleComponent* CapsuleCollision;
 
-	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* MeshMissile;
+    UPROPERTY(VisibleAnywhere)
+    UStaticMeshComponent* MeshMissile;
 
-	UPROPERTY(EditAnywhere, Category = "Missile")
-	float Vitesse = 2000.0f;
+    UPROPERTY(EditAnywhere, Category = "Missile")
+    float Vitesse = 2000.0f;
 
-	FVector Direction;
+    FVector Direction;
 
-	APawn* ReferenceVaisseau = nullptr;
+    APawn* ReferenceVaisseau = nullptr;
 
-	UFUNCTION()
-	void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-		bool bFromSweep, const FHitResult& SweepResult);
+    UFUNCTION()
+    void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+        bool bFromSweep, const FHitResult& SweepResult);
+
+    // Particle system à jouer à l'impact
+    UPROPERTY(EditAnywhere, Category = "FX")
+    UParticleSystem* ImpactFX;
 };
