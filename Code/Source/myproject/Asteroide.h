@@ -40,6 +40,10 @@ private:
 	int Vies = 1;
 	int InialLife;
 
+	// --- Son ---
+	UPROPERTY(EditAnywhere, Category = "Effets")
+	USoundBase* ExplosionSound;
+
 	// --- Effets ---
 	UPROPERTY(EditAnywhere, Category = "Effets")
 	UParticleSystem* ExplosionEffect;

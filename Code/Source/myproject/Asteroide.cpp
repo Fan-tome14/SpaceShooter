@@ -94,14 +94,20 @@ void AAsteroide::RecevoirDegat()
 
 	if (Vies <= 0)
 	{
-		//  Cacher le mesh immédiatement
+		// Cacher le mesh immédiatement
 		if (Mesh)
 		{
 			Mesh->SetVisibility(false);
 			Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
 
-		//  Spawn de l’effet d’explosion attaché à l’acteur
+		// Jouer le son d'explosion une seule fois
+		if (ExplosionSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplosionSound, GetActorLocation());
+		}
+
+		// Spawn de l’effet d’explosion attaché à l’acteur
 		if (ExplosionEffect)
 		{
 			UGameplayStatics::SpawnEmitterAttached(
@@ -115,10 +121,10 @@ void AAsteroide::RecevoirDegat()
 			);
 		}
 
-		//  Arrêter le mouvement en désactivant le tick
+		// Arrêter le mouvement en désactivant le tick
 		SetActorTickEnabled(false);
 
-		//  Détruire l’astéroïde (et l’effet attaché) après 1 seconde
+		// Détruire l’astéroïde (et l’effet attaché) après 1 seconde
 		FTimerHandle TimerHandle;
 		GetWorldTimerManager().SetTimer(
 			TimerHandle,
@@ -128,6 +134,7 @@ void AAsteroide::RecevoirDegat()
 			false
 		);
 	}
+
 }
 
 void AAsteroide::DestroyAsteroide()
