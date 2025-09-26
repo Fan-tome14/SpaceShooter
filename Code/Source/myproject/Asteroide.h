@@ -21,23 +21,31 @@ public:
 	void RecevoirDegat();
 
 private:
+	// --- Mouvement ---
 	UPROPERTY(EditAnywhere, Category = "Mouvement")
 	float Vitesse = 200.0f;
 
+	// --- Cible ---
 	UPROPERTY(EditAnywhere, Category = "Cible")
 	TSubclassOf<APawn> CibleClass;
 
 	APawn* CiblePawn = nullptr;
 
+	// --- Mesh ---
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* Mesh;
 
+	// --- Vie ---
 	UPROPERTY(EditAnywhere, Category = "Asteroide")
 	int Vies = 1;
 	int InialLife;
 
+	// --- Effets ---
 	UPROPERTY(EditAnywhere, Category = "Effets")
 	UParticleSystem* ExplosionEffect;
+
+	// --- Rotation ---
+	FVector RotationSpeed; // vitesse de rotation en deg/s
 
 	void DestroyAsteroide();
 };

@@ -3,7 +3,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "SpaceShooterGameMode.h"
 #include "Particles/ParticleSystemComponent.h"
-
+#include "TimerManager.h"
 
 AAsteroide::AAsteroide()
 {
@@ -25,9 +25,11 @@ void AAsteroide::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// --- Vie ---
 	Vies = FMath::RandRange(1, 3);
 	InialLife = Vies;
 
+	// --- Cible ---
 	if (CibleClass)
 	{
 		TArray<AActor*> FoundPawns;
@@ -38,12 +40,34 @@ void AAsteroide::BeginPlay()
 
 	if (!CiblePawn)
 		CiblePawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+
+	// --- Scale aléatoire ---
+	float RandomScale = FMath::FRandRange(0.008f, 0.01f);
+	Mesh->SetWorldScale3D(FVector(RandomScale));
+
+	// --- Rotation initiale aléatoire ---
+	RotationSpeed = FVector(
+		FMath::FRandRange(-60.f, 60.f), // Pitch speed en deg/s
+		FMath::FRandRange(-60.f, 60.f), // Yaw speed
+		FMath::FRandRange(-60.f, 60.f)  // Roll speed
+	);
 }
 
 void AAsteroide::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// --- Rotation du mesh ---
+	if (Mesh)
+	{
+		FRotator NewRotation = Mesh->GetComponentRotation();
+		NewRotation.Pitch += RotationSpeed.X * DeltaTime;
+		NewRotation.Yaw += RotationSpeed.Y * DeltaTime;
+		NewRotation.Roll += RotationSpeed.Z * DeltaTime;
+		Mesh->SetWorldRotation(NewRotation);
+	}
+
+	// --- Mouvement vers le vaisseau ---
 	if (!CiblePawn) return;
 
 	FVector DirectionToVaisseau = (CiblePawn->GetActorLocation() - GetActorLocation()).GetSafeNormal();
@@ -61,54 +85,52 @@ void AAsteroide::Tick(float DeltaTime)
 
 void AAsteroide::RecevoirDegat()
 {
-    Vies--;
+	Vies--;
 
-    if (ASpaceshooterGameMode* GM = Cast<ASpaceshooterGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
-    {
-        GM->addScore();
-    }
+	if (ASpaceshooterGameMode* GM = Cast<ASpaceshooterGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+	{
+		GM->addScore();
+	}
 
-    if (Vies <= 0)
-    {
-        //  Cacher le mesh immédiatement
-        if (Mesh)
-        {
-            Mesh->SetVisibility(false);
-            Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-        }
+	if (Vies <= 0)
+	{
+		//  Cacher le mesh immédiatement
+		if (Mesh)
+		{
+			Mesh->SetVisibility(false);
+			Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
 
-        //  Spawn de l’effet d’explosion attaché à l’acteur
-        if (ExplosionEffect)
-        {
-            UGameplayStatics::SpawnEmitterAttached(
-                ExplosionEffect,
-                RootComponent,
-                NAME_None,
-                FVector::ZeroVector,
-                FRotator::ZeroRotator,
-                EAttachLocation::KeepRelativeOffset,
-                true // AutoDestroy
-            );
-        }
+		//  Spawn de l’effet d’explosion attaché à l’acteur
+		if (ExplosionEffect)
+		{
+			UGameplayStatics::SpawnEmitterAttached(
+				ExplosionEffect,
+				RootComponent,
+				NAME_None,
+				FVector::ZeroVector,
+				FRotator::ZeroRotator,
+				EAttachLocation::KeepRelativeOffset,
+				true // AutoDestroy
+			);
+		}
 
-        //  Arrêter le mouvement en désactivant le tick
-        SetActorTickEnabled(false);
+		//  Arrêter le mouvement en désactivant le tick
+		SetActorTickEnabled(false);
 
-        //  Détruire l’astéroïde (et l’effet attaché) après 2 secondes
-        FTimerHandle TimerHandle;
-        GetWorldTimerManager().SetTimer(
-            TimerHandle,
-            this,
-            &AAsteroide::DestroyAsteroide,
-            1.0f,
-            false
-        );
-    }
+		//  Détruire l’astéroïde (et l’effet attaché) après 1 seconde
+		FTimerHandle TimerHandle;
+		GetWorldTimerManager().SetTimer(
+			TimerHandle,
+			this,
+			&AAsteroide::DestroyAsteroide,
+			1.0f,
+			false
+		);
+	}
 }
-
-
 
 void AAsteroide::DestroyAsteroide()
 {
-    Destroy();
+	Destroy();
 }
